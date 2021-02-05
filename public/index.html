@@ -1,0 +1,48 @@
+<html><title>Steer</title>
+<body>
+<script type='text/javascript'>
+async function postAngle(angle) {
+  document.getElementById('debug').textContent="Sending:"+angle+"\n"+document.getElementById('debug').textContent.substring(0,10000);
+  const r = await fetch('/steer', {
+    method:'post',
+    headers:{ 'Accept':'application/json','Content-Type':'application/json' },
+    body: JSON.stringify( { steering_angle: angle } )
+  } );
+  let result = await r.json();
+}
+const options = { frequency: 1, referenceFrame: 'device' };
+const sensor = new AbsoluteOrientationSensor(options);
+sensor.addEventListener('reading', () => {
+    let qw=sensor.quaternion[0];
+    let qx=sensor.quaternion[1];
+    let qy=sensor.quaternion[2];
+    let qz=sensor.quaternion[3];
+    let heading = Math.atan2(2*qy*qw-2*qx*qz , 1 - 2*qy*qy - 2*qz*qz);
+    let degreesHeading = heading / Math.PI * 180;
+    let delta =180 -  Math.abs(degreesHeading);
+    let direction = heading<0 ? 1 : -1;
+    console.log(heading,degreesHeading,direction)
+    document.getElementById('a').textContent=direction*delta;
+    postAngle(direction*delta);
+});
+
+Promise.all([navigator.permissions.query({ name: "accelerometer" }),
+             navigator.permissions.query({ name: "magnetometer" }),
+             navigator.permissions.query({ name: "gyroscope" })])
+       .then(results => {
+         if (results.every(result => result.state === "granted")) {
+           sensor.start();
+           document.getElementById('debug').textContent+="Starting";
+         } else {
+           document.getElementById('debug').textContent+="No permissions to use AbsoluteOrientationSensor.";
+         }
+   });
+
+
+
+</script>
+<div id="a">A</div>
+<button onclick='postAngle(-30)'>Left</button>
+<button onclick='postAngle(0)'>Straight</button>
+<button onclick='postAngle(30)'>Right</button>
+<pre id="debug"></pre>

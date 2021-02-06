@@ -15,6 +15,11 @@ Start zwift and connect to the steering control.
 
 Ride!
 
+Things:
+Mount the phone pointing along the direction of the handlebars.
+Disable auto-rotate on the phone.
+Disable screen going to sleep (I'll get round to the wake lock API maybe)
+
 
 Thanks to @marcoveeneman (https://github.com/marcoveeneman) for getting me started
 with the code in https://github.com/WouterJD/FortiusANT/pull/207

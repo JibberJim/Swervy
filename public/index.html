@@ -34,11 +34,15 @@ sensor.addEventListener('reading', () => {
       if (delta<5) {
         // Make sure we don't swerve down the road when sprinting, and
         // ensure not too much effort to hold a steady course.
-        delta=0;
+        delta = 0;
+      }
+      if (delta>45) {
+        // apparently 45 is the maximum?
+        delta = 45;
       }
       // XXX should we make the other steering more discrete chunks?
       console.log(heading,degreesHeading,direction);
-      document.getElementById('a').textContent=direction*delta;
+      document.getElementById('a').textContent=direction*Math.round(delta);
       postAngle(direction*delta);
     }
 });

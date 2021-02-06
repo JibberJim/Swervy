@@ -1,17 +1,31 @@
 <html><title>Swervy</title>
 <body>
+<svg width="100%" height="100%" viewBox="0 0 200 200" style="position:fixed;z-index:-1">
+  <circle cx="100" cy="100" r="3" style="fill: black;"/>
+<use xlink:href="#arrow" id="red" style="stroke: red;fill:red;opacity:0.5" transform="rotate(0,100,100)"/>
+<use xlink:href="#arrow" id="green" style="stroke: green;fill:green;opacity:1" transform="rotate(0,100,100)"/>
+<g id="black" transform="rotate(0,100,100)" style="stroke: black;fill:black;opacity:0">
+<g id="arrow" transform="rotate(-90,100,100)">
+    <line x1="100" y1="100" x2="140" y2="100"/>
+    <polygon points="140 100, 135 95, 135 105"/>
+  </g>
+</g>
+</svg>
 <script type='text/javascript'>
 let timer = 0;
 async function postAngle(angle) {
   clearTimeout(timer);
   if (document.getElementById("on").checked) {
+    document.getElementById('green').setAttribute('transform','rotate('+angle+',100,100)');
+
     document.getElementById('debug').textContent="Sending:"+angle+"\n"+document.getElementById('debug').textContent.substring(0,200);
     const r = await fetch('/steer', {
       method:'post',
       headers:{ 'Accept':'application/json','Content-Type':'application/json' },
       body: JSON.stringify( { steering_angle: angle } )
     } );
-    let result = await r.json();
+    // Should check this is good to know server is still there?
+    let result = await r;
     if (!document.getElementById("usegyro").checked) {
       // if we're on send an angle every 3 seconds to keep the
       // connection open
@@ -29,9 +43,10 @@ sensor.addEventListener('reading', () => {
       let qz=sensor.quaternion[3];
       let heading = Math.atan2(2*qy*qw-2*qx*qz , 1 - 2*qy*qy - 2*qz*qz);
       let degreesHeading = heading / Math.PI * 180;
-      let delta =180 -  Math.abs(degreesHeading);
+      let delta = 180 - Math.abs(degreesHeading);
       let direction = heading<0 ? 1 : -1;
-      if (delta<5) {
+      var rawAngle = delta * direction;
+      if (delta<8) {
         // Make sure we don't swerve down the road when sprinting, and
         // ensure not too much effort to hold a steady course.
         delta = 0;
@@ -41,9 +56,15 @@ sensor.addEventListener('reading', () => {
         delta = 45;
       }
       // XXX should we make the other steering more discrete chunks?
-      console.log(heading,degreesHeading,direction);
-      document.getElementById('a').textContent=direction*Math.round(delta);
-      postAngle(direction*delta);
+      console.log(delta,direction,rawAngle,direction*Math.round(delta),degreesHeading);
+      try {
+        let angle=direction*Math.round(delta);
+        document.getElementById('red').setAttribute('transform','rotate('+rawAngle+',100,100)');
+        document.getElementById('a').textContent=angle;
+        postAngle(angle);
+      } catch (e) {
+        document.getElementById('a').textContent = e;
+      }
     }
 });
 

@@ -13,6 +13,11 @@
 </svg>
 <script type='text/javascript'>
 let timer = 0;
+let calibrating=false;
+let left={maxDelta:0,calibrated:false};
+let right={maxDelta:0,calibrated:false};
+const MAX_ANGLE=45;
+
 async function postAngle(angle) {
   clearTimeout(timer);
   if (document.getElementById("on").checked) {
@@ -36,7 +41,7 @@ async function postAngle(angle) {
 const options = { frequency: 1, referenceFrame: 'device' };
 const sensor = new AbsoluteOrientationSensor(options);
 sensor.addEventListener('reading', () => {
-    if (document.getElementById("usegyro").checked) {
+    if (document.getElementById("usegyro").checked || calibrating) {
       let qw=sensor.quaternion[0];
       let qx=sensor.quaternion[1];
       let qy=sensor.quaternion[2];
@@ -46,22 +51,49 @@ sensor.addEventListener('reading', () => {
       let delta = 180 - Math.abs(degreesHeading);
       let direction = heading<0 ? 1 : -1;
       var rawAngle = delta * direction;
-      if (delta<8) {
-        // Make sure we don't swerve down the road when sprinting, and
-        // ensure not too much effort to hold a steady course.
-        delta = 0;
+
+      if (calibrating) {
+        if (direction==-1) {
+          left.maxDelta = Math.max(left.maxDelta,delta);
+          left.calibrated=true;
+        } else {
+          right.maxDelta = Math.max(right.maxDelta,delta);
+          right.calibrated=true;
+        }
       }
-      if (delta>45) {
-        // apparently 45 is the maximum?
-        delta = 45;
-      }
+
       // XXX should we make the other steering more discrete chunks?
       console.log(delta,direction,rawAngle,direction*Math.round(delta),degreesHeading);
       try {
-        let angle=direction*Math.round(delta);
+
+        let angle=Math.round(delta);
+
+        if (direction==-1 && left.calibrated) {
+          let high = left.maxDelta;
+          angle = Math.round((delta / left.maxDelta) * MAX_ANGLE);
+        }
+
+        if (direction==1 && right.calibrated) {
+          let high = right.maxDelta;
+          angle = Math.round((delta / right.maxDelta) * MAX_ANGLE);
+        }
+
+        if (angle<8) {
+          // ensure that little movements aren't steering when sprinting.
+          angle=0;
+        }
+
+        if (angle>MAX_ANGLE) {
+          angle=MAX_ANGLE;
+        }
+
+        angle=direction * angle;
+
         document.getElementById('red').setAttribute('transform','rotate('+rawAngle+',100,100)');
         document.getElementById('a').textContent=angle;
-        postAngle(angle);
+        if (!calibrating) {
+          postAngle(angle);
+        }
       } catch (e) {
         document.getElementById('a').textContent = e;
       }
@@ -74,12 +106,26 @@ Promise.all([navigator.permissions.query({ name: "accelerometer" }),
        .then(results => {
          if (results.every(result => result.state === "granted")) {
            sensor.start();
-           document.getElementById('debug').textContent+="Starting";
+           document.getElementById('debug').textContent="Starting";
          } else {
            document.getElementById('debug').textContent+="No permissions to use AbsoluteOrientationSensor.";
          }
    });
 
+
+function calibrate() {
+  calibrating=true;
+  document.getElementById('calibrate').textContent="Full Left";
+  setTimeout(function() {
+      document.getElementById('calibrate').textContent="Full Right";
+      setTimeout(function() {
+          document.getElementById('calibrate').textContent="Calibrate";
+          console.log(left,right);
+          document.getElementById('debug').textContent="Calibration:"+JSON.stringify({left:left,right:right});
+          calibrating=false;
+        },6000)
+  },6000);
+}
 
 
 </script>
@@ -91,10 +137,10 @@ button { font-size:1.5em; margin:0.1em;}
 
 </style>
 <section id="main">
-<input type="checkbox" id="usegyro" checked><label for="usegyro">Use Gyro</label>
+<input type="checkbox" id="usegyro" checked><label for="usegyro">Use Gyro</label><button onclick="calibrate()" id="calibrate">Calibrate</button>
 <div id="buttons">
 <button onclick='postAngle(-22.5)'>3</button><button onclick='postAngle(-15)'>2</button><button onclick='postAngle(-7.5)'>1</button><button onclick='postAngle(0)'>&nbsp;0&nbsp;</button><button onclick='postAngle(7.5)'>1</button><button onclick='postAngle(15)'>2</button><button onclick='postAngle(22.5)'>3</button></div>
-<input type="checkbox" id="on" checked><label for="usegyro">On</label>
+<input type="checkbox" id="on" checked><label for="on">On</label>
 </section>
 
 <div id="a"></div>

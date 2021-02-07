@@ -4,7 +4,7 @@ const events = require('events');
 const SteeringService = require('./steering-service/steering-service');
 
 class VirtualTrainer extends events {
-  constructor(steeringEnabled) {
+  constructor() {
     super();
 
     this.name = 'Steering';
@@ -13,7 +13,6 @@ class VirtualTrainer extends events {
     this.messages = [];
     this.ss = new SteeringService();
     this.stopTimer = null;
-    this.steeringEnabled = true;
     
     bleno.on('stateChange', (state) => {
       
@@ -37,38 +36,38 @@ class VirtualTrainer extends events {
     });
 
     bleno.on('advertisingStartError', () => {
-      console.log(`Steering advertisingStartError: advertising stopped`);
+      console.log(`advertisingStartError: advertising stopped`);
     });
 
     bleno.on('advertisingStop', error => {
-      console.log(`Steering advertisingStop: ${(error ? 'error ' + error : 'success')}`);
+      console.log(`advertisingStop: ${(error ? 'error ' + error : 'success')}`);
     });
 
     bleno.on('servicesSet', error => {
-      console.log(`Steering servicesSet: ${(error ? 'error ' + error : 'success')}`);
+      console.log(`servicesSet: ${(error ? 'error ' + error : 'success')}`);
     });
 
     bleno.on('accept', (clientAddress) => {
-      console.log(`Steering accept: client ${clientAddress}`);
+      console.log(`accept: client ${clientAddress}`);
       bleno.updateRssi();
     });
 
     bleno.on('rssiUpdate', (rssi) => {
-      console.log(`Steering rssiUpdate: ${rssi}')}`);
+      console.log(`rssiUpdate: ${rssi}`);
     });
   }
 
   get() {
     let data = this.messages.shift();
     if (typeof data === 'undefined') {
-      console.log(`Steering get: no messages in queue')}`);
+      console.log(`get: no messages in queue`);
       data = {};
     }
     return data;
   }
 
   update(event) {
-    console.log(`Steering update: ${JSON.stringify(event)}`);
+    console.log(`update: ${JSON.stringify(event)}`);
     if (this.stopTimer) {
       clearTimeout(this.stopTimer);
     }

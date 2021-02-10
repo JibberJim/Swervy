@@ -128,6 +128,15 @@ function calibrate() {
 }
 
 
+async function wakelock() {
+  try {
+    const wakeLock = await navigator.wakeLock.request('screen');
+  } catch (err) {
+    alert(err);
+  }
+}
+
+
 </script>
 <style type="text/css">
 
@@ -143,5 +152,6 @@ button { font-size:1.5em; margin:0.1em;}
 <input type="checkbox" id="on" checked><label for="on">On</label>
 </section>
 
+<button onclick="wakelock()">Keep Awake</button>
 <div id="a"></div>
 <pre id="debug"></pre>

@@ -1,16 +1,5 @@
 <html><title>Swervy</title>
 <body>
-<svg width="100%" height="100%" viewBox="0 0 200 200" style="position:fixed;z-index:-1">
-  <circle cx="100" cy="100" r="3" style="fill: black;"/>
-<use xlink:href="#arrow" id="red" style="stroke: red;fill:red;opacity:0.5" transform="rotate(0,100,100)"/>
-<use xlink:href="#arrow" id="green" style="stroke: green;fill:green;opacity:1" transform="rotate(0,100,100)"/>
-<g id="black" transform="rotate(0,100,100)" style="stroke: black;fill:black;opacity:0">
-<g id="arrow" transform="rotate(-90,100,100)">
-    <line x1="100" y1="100" x2="140" y2="100"/>
-    <polygon points="140 100, 135 95, 135 105"/>
-  </g>
-</g>
-</svg>
 <script type='text/javascript'>
 let timer = 0;
 let calibrating=false;
@@ -149,6 +138,7 @@ async function begin() {
 
 </script>
 <style type="text/css">
+html { background-color:black; color:white;}
 
 section { font-size:3em; }
 input[type=checkbox] { height:4em; width:4em; }
@@ -161,7 +151,22 @@ button { font-size:1.5em; margin:0.1em;}
 <section id="preplay">
 <button onclick="begin()">Start</button>
 </section>
-<section id="main"><div id="calibration"><div>Steer</div><div id="calibrate"></div></div>
+<section id="main">
+
+<svg width="100%" height="100%" viewBox="0 0 200 200" style="position:fixed;z-index:-1;left:0;top:0;">
+  <circle cx="100" cy="100" r="3" style="fill: black;"/>
+<use xlink:href="#arrow" id="red" style="stroke: red;fill:red;opacity:0.5" transform="rotate(0,100,100)"/>
+<use xlink:href="#arrow" id="green" style="stroke: green;fill:green;opacity:1" transform="rotate(0,100,100)"/>
+<g id="black" transform="rotate(0,100,100)" style="stroke: black;fill:black;opacity:0">
+<g id="arrow" transform="rotate(-90,100,100)">
+    <line x1="100" y1="100" x2="140" y2="100"/>
+    <polygon points="140 100, 135 95, 135 105"/>
+  </g>
+</g>
+</svg>
+
+
+<div id="calibration"><div>Steer</div><div id="calibrate"></div></div>
 <div id="buttons">
 
 <div id="bottom">
